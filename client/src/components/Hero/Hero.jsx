@@ -27,6 +27,14 @@ const Hero = ({ handleOrderPopup }) => {
     width: "100%",
   };
 
+  const handleReadNow = () => {
+    if (selectedBook && selectedBook.bkcon) {
+      window.open(selectedBook.bkcon, "_blank");
+    } else {
+      console.error("Book content PDF not available");
+    }
+  };
+
   return (
     <>
       <div className="min-h-[550px] sm:min-h-[650px] bg-gray-100 flex justify-center items-center dark:bg-black dark:text-white duration-200" style={bgImage}>
@@ -44,13 +52,11 @@ const Hero = ({ handleOrderPopup }) => {
                   <p data-aos="slide-up" data-aos-duration="500" data-aos-delay="100" className="text-sm ">
                     {selectedBook.desp}
                   </p>
+                  <button onClick={handleReadNow} className="bg-gradient-to-r from-primary to-secondary hover:scale-105 duration-200 text-white py-2 px-4 rounded-full">
+                    Read Now
+                  </button>
                 </div>
               )}
-              <div>
-                <button onClick={handleOrderPopup} className="bg-gradient-to-r from-primary to-secondary hover:scale-105 duration-200 text-white py-2 px-4 rounded-full">
-                  Order Now
-                </button>
-              </div>
             </div>
             <div className="min-h-[450px] sm:min-h-[450px] flex justify-center items-center relative order-1 sm:order-2 ">
               <div className="h-[300px] sm:h-[450px] overflow-hidden flex justify-center items-center">
