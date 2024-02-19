@@ -9,6 +9,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from "dotenv";
 import bcrypt from "bcrypt"; 
+import stripe from 'stripe';
+import bodyParser from "body-parser"; 
+
 
 dotenv.config();
 
@@ -73,6 +76,10 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
+    },
+    premium: {
+      type: Boolean,
+      default: false, 
     },
   },
   { timestamps: true }
@@ -666,13 +673,64 @@ app.post("changing-password", async (req, res) => {
   }
 });
 
+// Define a webhook endpoint to listen for events from Stripe
+app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
 
+  try {
+    // Construct the event from the request body and signature
+    event = stripe.webhooks.constructEvent(req.body, sig, 'whsec_CHhmojMqnuE7B1alClgzww2XI5mCkek3');
+  } catch (err) {
+    console.error(err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
 
+  // Handle the event
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    const userEmail = session.customer_email;
 
+    try {
+      // Find the user in the database by email and update the premium field
+      const user = await User.findOneAndUpdate({ email: userEmail }, { premium: true }, { new: true });
 
+      if (!user) {
+        console.error('User not found:', userEmail);
+        return res.status(404).send('User not found');
+      }
 
+      console.log('User updated to premium:', user);
 
+      // Send email to the user
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: true,
+        auth: {
+          user: 'it24img@gmail.com',
+          pass: 'fvfh msrl wuru ulkq',
+        },
+      });
 
+      const options = {
+        from: 'it24img@gmail.com',
+        to: userEmail,
+        subject: 'Subscription Successful',
+        html: '<h2>Your subscription is successful. You are now a premium user.</h2>',
+      };
+
+      await transporter.sendMail(options);
+      console.log('Email sent: Subscription Successful');
+
+      res.status(200).end();
+    } catch (error) {
+      console.error('Error updating user or sending email:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  }
+});
 
 app.listen(3001, () => {
   console.log("\nBE started at port 3001");
