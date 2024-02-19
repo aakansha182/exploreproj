@@ -105,13 +105,7 @@ const Navbar = ({ handleOrderPopup }) => {
               </ul>
               {uData && uData?.email && (
                 <>
-                  <button
-                    onClick={() => handleOrderPopup()}
-                    className="bg-gradient-to-r from-primary to-secondary hover:scale-105 duration-200 text-white py-1 px-4 rounded-full flex items-center gap-3"
-                  >
-                    Books
-                    <IoBookSharp className="text-xl text-white drop-shadow-sm cursor-pointer" />
-                  </button>
+                  
 
                   <a
                     href={"/allbooks"}
